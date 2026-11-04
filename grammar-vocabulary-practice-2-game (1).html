@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grammar & Vocabulary Practice 2 – TV Programme Game</title>
+<style>
+:root{--ink:#1b2a41;--bg:#e8f1ff;--card:#fff;--g:#2fb35f;--r:#e5484d;--y:#ffc233;--b:#2b7de9}
+@media (prefers-color-scheme:dark){:root{--ink:#f1f5f9;--bg:#101a2e;--card:#1b2b47}}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Trebuchet MS",Arial,sans-serif;background:var(--bg);color:var(--ink);padding:12px;min-height:100vh}
+.wrap{max-width:780px;margin:auto}
+.top{background:var(--card);border:3px solid var(--ink);border-radius:18px;padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+.top input{border:0;border-bottom:2px solid var(--ink);background:transparent;color:var(--ink);font:inherit;width:140px}
+.bar{height:14px;background:#0002;border-radius:10px;margin-top:10px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--y),var(--g));transition:.5s}
+.panel{background:var(--card);border:3px solid var(--ink);border-radius:22px;margin-top:12px;padding:14px}
+h1{margin:0 0 8px;font-size:22px;text-align:center}
+.tv{border:4px solid var(--ink);border-radius:18px;padding:12px 14px;line-height:2.1;font-size:18px;font-family:Georgia,serif;background:linear-gradient(#fff,#eaf2ff);color:#1b2a41}
+.b{display:inline-block;min-width:92px;border-bottom:3px solid #1b2a41;text-align:center;font-weight:800;font-family:Arial;font-size:15px;color:#2b7de9;border-radius:4px}
+.b.cur{background:#ffe9a8;animation:pulse 1s infinite}
+.b.ok{color:#176b36;background:#c9f5d6}
+@keyframes pulse{50%{transform:scale(1.08)}}
+.q{margin-top:14px;text-align:center}
+.q h2{margin:0 0 4px}.q .em{font-size:60px;animation:float 2s infinite}
+@keyframes float{50%{transform:translateY(-8px)}}
+.opts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+@media(max-width:560px){.opts{grid-template-columns:1fr}}
+.o{border:3px solid var(--ink);background:#fff;color:#1b2a41;font:inherit;font-weight:800;font-size:19px;padding:14px 8px;border-radius:16px;cursor:pointer;box-shadow:0 5px 0 var(--ink);transition:.15s}
+.o:hover{transform:translateY(-3px)}
+.o.ok{background:#c9f5d6;animation:pop .5s}
+.o.bad{background:#ffd3d5;animation:shake .4s}
+.msg{min-height:28px;font-weight:800;margin-top:12px;text-align:center}
+.btn{display:block;margin:14px auto 0;border:3px solid var(--ink);background:var(--g);color:#fff;font:inherit;font-weight:900;font-size:20px;padding:10px 28px;border-radius:30px;cursor:pointer;box-shadow:0 5px 0 var(--ink)}
+.foot{text-align:center;margin:16px 0;font-weight:700}
+.fx{position:fixed;pointer-events:none;font-size:30px;animation:fly 1.4s ease-out forwards;z-index:9}
+@keyframes fly{to{transform:translate(var(--x),var(--y)) rotate(360deg);opacity:0}}
+@keyframes pop{50%{transform:scale(1.12)}}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+ <div class="top">
+  <div>Name: <input id="nm" placeholder="Type your name"></div>
+  <div>Class: 7</div><div id="sc" style="font-size:20px">⭐ 0</div>
+  <button class="o" id="snd" style="padding:4px 10px;box-shadow:none;font-size:16px">🔊</button>
+ </div>
+ <div class="bar"><i id="pb"></i></div>
+ <div class="panel" id="game"></div>
+ <div class="foot">🎬 Created by T.Badria Alfalahi 🎬</div>
+</div>
+<script>
+const T=["Last week, our school organised a special TV programme. My friend Ahmed wants to become a ","1"," because he enjoys speaking in front of cameras. He ","2"," been interested in television ","3"," he was ten years old. His sister works as a ","4"," and creates beautiful cartoon characters. Their uncle is a ","5"," who controls the sounds in films. Ahmed has ","6"," part in many school programmes. He felt very ","7"," when his teacher invited him to present the show. The programme was really ","8"," because the students performed different activities. A famous ","9"," also visited the school and entertained the children with puppets. Everyone enjoyed the show, ","10"," they asked for another one."];
+const Q=[
+ {o:["presenter","animator","sound editor"],a:0,e:"🎤📺"},
+ {o:["have","has","had"],a:1,e:"✍️"},
+ {o:["for","at","since"],a:2,e:"⏰"},
+ {o:["puppeteer","animator","performer"],a:1,e:"🎨🖍️"},
+ {o:["sound editor","presenter","make-up artist"],a:0,e:"🎧🎬"},
+ {o:["take","took","taken"],a:2,e:"🎭"},
+ {o:["exciting","excited","interesting"],a:1,e:"🤩"},
+ {o:["interested","interesting","bored"],a:1,e:"🌟"},
+ {o:["puppeteer","sound editor","animator"],a:0,e:"🧸🎭"},
+ {o:["but","because","so"],a:1,e:"👏"}];
+let i=0,score=0,mist=0,sound=true,ac,lock=false;
+const G=document.getElementById('game');
+function beep(f,d,t='sine',v=.15,w=0){if(!sound)return;ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+ const o=ac.createOscillator(),g=ac.createGain();o.type=t;o.frequency.value=f;g.gain.value=v;o.connect(g);g.connect(ac.destination);
+ const s=ac.currentTime+w;g.gain.exponentialRampToValueAtTime(.001,s+d);o.start(s);o.stop(s+d);}
+const sOK=()=>[523,659,784].forEach((f,k)=>beep(f,.18,'triangle',.18,k*.09));
+const sBAD=()=>beep(150,.3,'sawtooth',.12);
+const sWIN=()=>[523,659,784,1047,784,1047,1319].forEach((f,k)=>beep(f,.2,'triangle',.18,k*.12));
+document.getElementById('snd').onclick=e=>{sound=!sound;e.target.textContent=sound?'🔊':'🔇'};
+function burst(el,em){const r=el.getBoundingClientRect();for(let k=0;k<10;k++){const s=document.createElement('span');s.className='fx';s.textContent=em[k%em.length];
+ s.style.left=r.left+r.width/2+'px';s.style.top=r.top+r.height/2+'px';s.style.setProperty('--x',(Math.random()*240-120)+'px');s.style.setProperty('--y',(Math.random()*-220-20)+'px');
+ document.body.appendChild(s);setTimeout(()=>s.remove(),1500);}}
+function passage(){return T.map((t,k)=>{if(k%2==0)return t;const n=+t-1;
+ if(n<i)return `<span class="b ok">${Q[n].o[Q[n].a]}</span>`;
+ return `<span class="b ${n==i?'cur':''}">(${t})</span>`}).join('')}
+function show(){
+ lock=false;document.getElementById('pb').style.width=(i/10*100)+'%';
+ const q=Q[i];
+ G.innerHTML=`<h1>📺 Our School TV Programme 🎬</h1><div class="tv">${passage()}</div>
+ <div class="q"><div class="em">${q.e}</div><h2>Question ${i+1} of 10</h2><div>Choose the correct option for blank (${i+1})</div>
+ <div class="opts">${q.o.map((x,k)=>`<button class="o" data-k="${k}">${x}</button>`).join('')}</div><div class="msg" id="msg"></div></div>`;
+ G.querySelectorAll('.o').forEach(b=>b.onclick=()=>pick(b));
+}
+function pick(b){
+ if(lock)return;const k=+b.dataset.k,m=document.getElementById('msg');
+ if(k===Q[i].a){lock=true;b.classList.add('ok');sOK();burst(b,['⭐','✨','🎉','🎬']);score+=10;
+  document.getElementById('sc').textContent='⭐ '+score;m.textContent=['Great job! 🌟','Awesome! 🎉','Super! 🏆','Perfect! 👏'][i%4];
+  setTimeout(()=>{i++;i<10?show():finish()},1100);}
+ else{b.classList.add('bad');sBAD();mist++;m.textContent='Oops! Try again 💪';setTimeout(()=>b.classList.remove('bad'),450);}
+}
+function finish(){
+ document.getElementById('pb').style.width='100%';
+ const n=(document.getElementById('nm').value||'Champion').replace(/</g,'');
+ const st=mist<=2?'⭐⭐⭐':mist<=5?'⭐⭐':'⭐';
+ G.innerHTML=`<div style="text-align:center"><div style="font-size:80px">🏆🎬🎤</div><h1>Well done, ${n}!</h1><div style="font-size:42px">${st}</div>
+ <div class="tv" style="margin-top:10px">${passage()}</div><p>Score: <b>${score}</b> | Mistakes: <b>${mist}</b></p><button class="btn" id="again">Play again 🔄</button></div>`;
+ sWIN();for(let k=0;k<5;k++)setTimeout(()=>burst(G,['🎉','⭐','🎬','🏆','✨']),k*300);
+ document.getElementById('again').onclick=()=>{i=0;score=0;mist=0;document.getElementById('sc').textContent='⭐ 0';show();};
+}
+show();
+</script>
+</body>
+</html>
